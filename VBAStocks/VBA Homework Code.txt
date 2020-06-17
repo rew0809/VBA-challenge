@@ -1,0 +1,129 @@
+Sub DataScrape():
+
+    'Variable  definitions
+    Dim i As Double
+    Dim Ticker As String
+    Dim Num As Double
+    Dim LastRow As Double
+    
+    Dim OpenPr As Double
+    Dim ClosePr As Double
+    Dim Op As Double
+    Dim Volume As Double
+    
+    Dim MaxInc As Double
+    Dim MaxDec As Double
+    Dim MaxVolume As Double
+    Dim IncTicker As String
+    Dim DecTicker As String
+    Dim VolTicker As String
+    
+    Dim ws As Worksheet
+    Dim starting_ws As Worksheet
+    Set starting_ws = ActiveSheet 'remember which worksheet is active in the beginning
+
+    For Each ws In ThisWorkbook.Worksheets
+    ws.Activate
+    
+    LastRow = Range("A" & Rows.Count).End(xlUp).Row
+    Num = 2
+    Op = 2
+    
+    'New Column Headers
+    Cells(1, 9).Value = "Ticker"
+    Cells(1, 10).Value = "Yearly Change"
+    Cells(1, 11).Value = "Percent Change"
+    Cells(1, 12).Value = "Total Stock Volume"
+    
+    'Find and Print Price/Volume Data for Tickers
+    For i = 2 To LastRow
+        OpenPr = Cells(Op, 3).Value
+        Ticker = Cells(i, 1).Value
+        If Cells(i + 1, 1).Value <> Ticker Then
+            ClosePr = Cells(i, 6).Value
+            Volume = Application.Sum(Range(Cells(Op, 7), Cells(i, 7)))
+            
+            'Print Tickers
+            Cells(Num, 9).Value = Ticker
+            
+            'Print 1 yr Price Diff and Format
+            Cells(Num, 10).Value = ClosePr - OpenPr
+            If Cells(Num, 10).Value > 0 Then
+                Cells(Num, 10).Interior.ColorIndex = 4
+            ElseIf Cells(Num, 10).Value < 0 Then
+                Cells(Num, 10).Interior.ColorIndex = 3
+            End If
+                
+            
+            'Print 1 yr Price return % and Format
+            If OpenPr = 0 Then
+                Cells(Num, 11).Value = 0
+            Else
+                Cells(Num, 11).Value = (ClosePr - OpenPr) / OpenPr
+                Cells(Num, 11).NumberFormat = "0.00%"
+                
+            End If
+            
+            'Print Cumulative Volume and Format
+            Cells(Num, 12).Value = Volume
+            Cells(Num, 12).NumberFormat = "0,000"
+            
+            Num = Num + 1
+            Op = i + 1
+        End If
+    Next i
+    
+    'Print Headers for Greatest Table
+    Cells(1, 15).Value = "Ticker"
+    Cells(1, 16).Value = "Value"
+    Cells(2, 14).Value = "Greatest % Increase"
+    Cells(3, 14).Value = "Greatest % Decrease"
+    Cells(4, 14).Value = "Greatest Total Volume"
+    
+    'Initiate Values for Greatest Table
+    MaxInc = Cells(i, 11).Value
+    MaxDec = Cells(i, 11).Value
+    MaxVolume = Cells(i, 12).Value
+    IncTicker = Cells(i, 9).Value
+    DecTicker = Cells(i, 9).Value
+    VolTicker = Cells(i, 9).Value
+    
+    LastRow = Range("I" & Rows.Count).End(xlUp).Row
+    
+    'Find Values for Greatest Table
+    For i = 2 To LastRow
+        
+        If (Cells(i + 1, 11) > MaxInc) Then
+            MaxInc = Cells(i + 1, 11)
+            IncTicker = Cells(i + 1, 9)
+        End If
+        
+        If Cells(i + 1, 11) < MaxDec Then
+            MaxDec = Cells(i + 1, 11)
+            DecTicker = Cells(i + 1, 9)
+        End If
+        
+        If Cells(i + 1, 12) > MaxVolume Then
+            MaxVolume = Cells(i + 1, 12)
+            VolTicker = Cells(i + 1, 9)
+        End If
+        
+    Next i
+   
+    'Print Values for Greatest Table & Format
+    Cells(2, 15).Value = IncTicker
+    Cells(3, 15).Value = DecTicker
+    Cells(4, 15).Value = VolTicker
+    Cells(2, 16).Value = MaxInc
+    Cells(2, 16).NumberFormat = "0.00%"
+    Cells(3, 16).Value = MaxDec
+    Cells(3, 16).NumberFormat = "0.00%"
+    Cells(4, 16).Value = MaxVolume
+    Cells(4, 16).NumberFormat = "0,000"
+    
+Next
+
+starting_ws.Activate 'activate the worksheet that was originally active
+
+End Sub
+
